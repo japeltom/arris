@@ -255,9 +255,10 @@ class Controller(BaseController):
         def format_file_name(current_file_name, metadata):
             """Format a new file name according to the metadata."""
 
-            extension = current_file_name.split(".")[-1].lower()
+            extension = current_file_name.split(".")[-1]
             if extension == "jpeg":
                 extension = "jpg"
+            extension = extension.lower() if extension.lower() == "jpg" else extension
 
             if metadata is None:
                 return None
