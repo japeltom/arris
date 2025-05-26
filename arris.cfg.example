@@ -1,0 +1,8 @@
+[general]
+default_language=de-DE
+default_time_zone=Europe/Berlin
+
+[completion]
+author=John Doe,Jane Doe
+city=Berlin,München
+country=Deutschland,Schweiz
