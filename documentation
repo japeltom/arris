@@ -1,0 +1,163 @@
+Here is some attempted documentation/clarification for the call sequences and
+emitted signals in presence of more complex program events. I guess there are
+better ways to document, but I do not want to start writing complex UML
+diagrams now.
+
+@ S means at the event that signal S is emitted
+--C--> means "calls"
+--E--> means "emits"
+--S--> means "state change", first is edited state, letter action state
+Nesting can be used to indicate several parallel events.
+
+
+Arris Signal: Arris.filesystem_treeView.clicked
+-------------------------------------------------------------------------------
+Intent: list the contents of the clicked directory (if any) in
+self.files_listWidget.
+
+When the signal Arris.filesystem_treeView.clicked is emitted, the method
+Arris.on_directory_clicked is called. This method collects the clicked
+directory and checks if recursive loading is enabled. This information is
+communicated by emitting the signal context.request_directory_change. Whenever
+this signal is emitted, the method Controller.handle_request_directory_change
+is called with the gathered information as parameters.
+
+If the edited state is "edited", then we ask the user if they want to discard
+the current edits and reload some other directory. If not, we do nothing.
+Otherwise, we discard the edits, list the files in the specified path, and emit
+the signal Context.update_files with the files as parameters.
+
+The signal Context.update_files both sets the state to "edit_zero_files" and
+calls the method Arris.populate_listWidget, which displays the files in the
+GUI.
+
+@ Arris.filesystem_treeView.clicked
+--C--> Arris.on_directory_clicked
+    set path, recursive
+    --E--> context.request_directory_change(path, recursive)
+
+@ Context.request_directory_change(path, recursive)
+--C--> Controller.handle_request_directory_change(path, recursive)
+    @ edited_state == "edited"
+        @ user_wants_to_discard_edits
+            --E--> context.discard_edits
+        @ otherwise
+            --E--> context.files_not_updated
+            exit
+    @ edited_state == "not_edited"
+        --E--> context.update_files(path, files)
+        
+@ Context.update_files
+--S--> (*, edit_zero_files)
+--C--> Arris.populate_listWidget(path, files)
+
+@ Context.discard_edits
+--C--> Arris.discard_edits
+--C--> Controller.handle_discard_edits
+--S--> (initial, not_edited)
+
+@ Context.files_not_updated
+--C--> Arris.restore_selection
+
+
+Arris.files_listWidget.itemSelectionChanged
+-------------------------------------------------------------------------------
+Intent: load the metadata of the selected file/files in order to edit the
+metadata entries.
+
+When the signal Arris.files_listWidget.itemSelectionChanged is emitted, the
+method Arris.on_selection_changes is called. This method finds the indices of
+the selected items and communicates them by emitting the signal
+Context.request_selected_changed. The method then proceeds to load the
+thumbnails asynchronously. Whenever the signal Context.request_selected_changed
+is emitted, the method Controller.handle_request_select_files is called with
+the indices as parameters.
+
+In Controller.handle_request_select_files, the current metadata is gathered
+from the metadata fields and is saved. Then we figure out if there are zero,
+one, or multiple files selected. If there is zero selected files, we
+essentially do nothing although Arris.enter_edit_zero_files is called to do
+some UI touch-ups. If there is a single file, its metadata is loaded into the
+metadata entries and the action state is set to "edit_one_file". If there are
+multiple files to be action, we figure out the common entries and put these
+into the metadata entries to be edited and change the action state to
+"edit_many_files".
+
+On the state changes to states "edit_one_file" or "edit_many_files", the
+respective methods Arris.enter_edit_one_file and Arris.enter_many_files are
+called. These methods ensure that the UI works as expected.
+
+@ Arris.files_listWidget.itemSelectionChanged
+--C--> Arris.on_selection_changed
+    set files_idx
+    --E--> Context.request_selected_changed(files_idx)
+
+@ Context.request_selected_changed(files_idx)
+--C--> Controller.handle_request_select_files(files_idx)
+    --C--> Controller.save_selected_metadata
+    @ 0 files to edit
+        --E--> Context.edit_zero_files
+        --S--> (*, edit_zero_files)
+    @ 1 file to edit
+        set metadata_entries
+        Context.update_metadata(metadata_entries)
+        --E--> Context.edit_one_file
+        --S--> (*, edit_one_file)
+    @ many files to edit
+        set metadata_entries
+        Context.update_metadata(metadata_entries)
+        --E--> Context.edit_many_files
+        --S--> (*, edit_many_files)
+
+@ Context.edit_zero_files
+--C--> Arris.enter_edit_zero_files
+
+@ Context.edit_one_file
+--C--> Arris.enter_edit_one_file
+
+@ Context.edit_many_files
+--C--> Arris.enter_edit_many_files
+
+
+Arris Signal: Arris.actionSave.triggered
+-------------------------------------------------------------------------------
+Intent: Save the changes in edited files on disk (if any).
+
+When the save button is clicked (Arris must be in edited state for this to be
+possible), the method Arris.on_save is called. This method figures out if the
+user wants to optimize the saved files by checking the state of
+Arris.optimize_checkBox. This information is communicated by emitting the signal
+Context.request_save. Whenever this signal is emitted, the method
+Controller.handle_request_save is called with the optimize flag as an argument.
+
+In Controller.handle_request_select_files, the current metadata is gathered
+from the metadata fields and is saved. The controller then proceeds to save the
+changes on disk based on its internal state. While saving, the only thing
+visible to the user is the deletion of files which emits the signal
+Context.file_deleted which in turn calls Arris.remove_listWidget to remove the
+corresponding file.
+
+When all edits are saved, the signal Context.saved_edits is emitted, which
+changes the edited state to "not_edited". Entering this state triggers a call to
+Arris.enter_not_edited, which restores the UI to proper state.
+
+@ Arris.actionSave.triggered
+--C--> Arris.on_save
+    set recursive
+    --E--> Context.request_save(optimize)
+
+@ Context.request_save(optimize)
+--C--> Controller.handle_request_save(optimize)
+    --C--> Controller.save_selected_metadata
+    @ file deletion
+        set delete_idx
+        --E--> Context.file_deleted(idx)
+    --E--> Context.saved_edits
+
+@ Context.file_deleted(idx)
+--C--> Arris.remove_listWidget(idx)
+
+@ Context.saved_edits
+--S--> (not_edited, *)
+--C--> Arris.enter_not_edited
+
