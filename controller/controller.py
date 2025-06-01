@@ -317,7 +317,10 @@ class Controller(BaseController):
             # Notice that this must be done before we consider if a file has
             # been edited.
             if self.get_current(idx, "delete"):
-                os.unlink(file_name)
+                # Only delete if the file exists (the file might have already
+                # been removed by a previous save event).
+                if os.path.exists(file_name):
+                    os.unlink(file_name)
                 self.context.file_deleted.emit(idx)
                 self.context.indicate_progress.emit(n + 1)
                 continue

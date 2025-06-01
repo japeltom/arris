@@ -420,7 +420,7 @@ class Base_MainWindow:
         """Removes file with the given index from the list widget."""
 
         with self.disabled_selection_changed_signals:
-            # Remove the files from the list widget.
+            # Remove the file from the list widget.
             for item in items(self.files_listWidget):
                 if item.data(self.OFFSET_IDX) == idx:
                     row = self.files_listWidget.row(item)

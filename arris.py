@@ -188,16 +188,11 @@ class Arris(QMainWindow,Ui_MainWindow,Base_MainWindow):
         for item in selected:
             item.setFlags(item.flags() & ~Qt.ItemIsSelectable & ~Qt.ItemIsEnabled)
 
-        # Clear the selection.
-        with self.disabled_selection_changed_signals:
-            self.files_listWidget.clearSelection()
+        # Request selection change to empty.
+        self.context.request_selected_changed.emit([])
 
         # Enable the undelete button.
         self.undelete_button.setEnabled(True)
-
-        self.clear_thumbnails()
-        self.clear_metadata_entries()
-        self.metadata_groupBox.setEnabled(False)
 
         # We signal that all selected entries have been deleted.
         self.on_event_edit()
