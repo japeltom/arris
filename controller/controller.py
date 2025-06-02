@@ -252,6 +252,10 @@ class Controller(BaseController):
         # We simply set the new names according to the date times.
         # TODO: The rename method should be user-selectable.
 
+        # Get the current metadata from the UI in case the data needed for
+        # rename has changed.
+        self.save_selected_metadata()
+
         def format_file_name(current_file_name, metadata):
             """Format a new file name according to the metadata."""
 
