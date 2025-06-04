@@ -151,8 +151,6 @@ def write_xmp_to_file(filename, metadata, language):
         param = f"set {tag_name} {tag_value}"
         calls.append(param)
 
-    print(calls)
-
     # Remove all XMP data from the file.
     #Popen(["exiv2", "-k", "-dx", "rm", filename], stdout=PIPE, stderr=PIPE).communicate()
 
