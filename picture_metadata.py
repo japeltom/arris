@@ -119,9 +119,12 @@ def write_xmp_to_file(filename, metadata, language):
         raise IOError("File '{}' does not exist.".format(filename))
 
     # Prepare XMP tag setup.
+    # We avoid writing the language tag if it is not needed.
     calls = []
+    language_add = False
     for entry in entries:
         if entry not in metadata: continue
+        if entry == "language": continue
 
         tag_name = "Xmp." + ".".join(entries[entry]["tag"])
         # Delete the tag first.
@@ -132,11 +135,23 @@ def write_xmp_to_file(filename, metadata, language):
         for value in metadata[entry]:
             tag_value = entries[entry]["callback"](value) if "callback" in entries[entry] else value
             if entries[entry]["type"] == "bag" and ("language" in entries[entry] and entries[entry]["language"]):
-                tag_language = "fi-FI"
-                param = f"set {tag_name} lang={tag_language} {tag_value}"
+                param = f"set {tag_name} lang={language} {tag_value}"
+                language_add = False
             else:
                 param = f"set {tag_name} {tag_value}"
             calls.append(param)
+
+    # The language tag is always removed.
+    entry = "language"
+    tag_name = "Xmp." + ".".join(entries[entry]["tag"])
+    calls.append(f"del {tag_name}")
+    if language_add:
+        value = metadata[entry][0]
+        tag_value = entries[entry]["callback"](value) if "callback" in entries[entry] else value
+        param = f"set {tag_name} {tag_value}"
+        calls.append(param)
+
+    print(calls)
 
     # Remove all XMP data from the file.
     #Popen(["exiv2", "-k", "-dx", "rm", filename], stdout=PIPE, stderr=PIPE).communicate()
