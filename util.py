@@ -246,14 +246,12 @@ def rotate_image(file_name, angle):
                 new_orientation = current_orientation
                 angle_remaining = angle
                 while angle_remaining > 0:
-                    print("current", new_orientation)
                     new_orientation = orientation_map[new_orientation]
                     angle_remaining -= 90
             else:
                 # No orientation tag exists.
                 new_orientation = angle_map[angle]
             
-            print(f"raw rotation to {angle} -> {new_orientation}")
             Popen(["exiv2", "-k", "-M", f"set Exif.Image.Orientation {new_orientation}", file_name], stdout=PIPE, stderr=PIPE).communicate()
         case _:
             raise ValueError(f"Unknown file type '{extension(file_name)}' for rotation.")
