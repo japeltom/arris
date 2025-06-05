@@ -11,7 +11,7 @@ from PySide6.QtCore import Qt, QDateTime, QTimeZone
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import QCompleter
 
-supported_extensions = ["cr2", "jpg", "jpeg", "rw2"]
+supported_extensions = ["cr2", "jpg", "jpeg", "png", "rw2"]
 
 def items(list_widget):
     """Generates the items of the given list widget."""
