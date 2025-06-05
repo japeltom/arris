@@ -19,18 +19,18 @@ def read_config_file(config_file_name):
 
     sections = ["general", "completion"]
     for section in sections:
-        if not section in d:
+        if section not in d:
             d[section] = {}
 
     # Add defaults, validate, and perform some transformations.
-    if not "default_time_zone" in d.general:
+    if "default_time_zone" not in d.general:
         d.general.default_time_zone = "UTC"
     try:
         pytz.timezone(d.general.default_time_zone)
-    except pytz.exceptions.UnknownTimeZoneError:
-        raise ConfigError(f"Unknown default time zone {d.general.default_time_zone}.")
+    except pytz.exceptions.UnknownTimeZoneError as exc:
+        raise ConfigError(f"Unknown default time zone {d.general.default_time_zone}.") from exc
 
-    if not "default_language" in d.general:
+    if "default_language" not in d.general:
         d.general.default_language = "en-US"
 
     if "debug" in d.general:

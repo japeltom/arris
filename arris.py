@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import copy, datetime, os, shutil, sys
+import copy, os, shutil, sys
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QTransform

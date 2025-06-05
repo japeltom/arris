@@ -1,6 +1,6 @@
 from PySide6.QtCore import Qt, QSize, QTimer
-from PySide6.QtGui import QGuiApplication, QPixmap, QTransform
-from PySide6.QtWidgets import QDialog, QDialogButtonBox, QLabel, QVBoxLayout
+from PySide6.QtGui import QGuiApplication, QTransform
+from PySide6.QtWidgets import QDialog, QLabel, QVBoxLayout
 
 from util import load_photo
 

@@ -1,9 +1,9 @@
 import datetime, os, shutil
 
-from PySide6.QtCore import QEventLoop, Slot
+from PySide6.QtCore import QEventLoop
 
 from controller.base import BaseController
-from picture_metadata import load_xmp_from_file, write_xmp_to_file, get_empty_picture_data, load_exif_from_file, write_exif_to_file, exif_timestamp_to_datetime
+from picture_metadata import load_xmp_from_file, write_xmp_to_file, load_exif_from_file, write_exif_to_file, exif_timestamp_to_datetime
 from util import list_files, optimize_image, rotate_image, set_image_permissions, set_image_timestamp
 
 class Controller(BaseController):
@@ -49,16 +49,16 @@ class Controller(BaseController):
 
         if identifier is None:
             return self.current_files[idx]
+
+        if identifier not in self.offsets:
+            raise ValueError(f"Unknown identifier {identifier}.")
         else:
-            if not identifier in self.offsets:
-                raise ValueError(f"Unknown identifier {identifier}.")
-            else:
-                return self.current_files[idx][self.offsets[identifier]]
+            return self.current_files[idx][self.offsets[identifier]]
 
     def set_current(self, idx, identifier, value):
         """Set data for the current file at the given idx."""
 
-        if not identifier in self.offsets:
+        if identifier not in self.offsets:
             raise ValueError(f"Unknown identifier {identifier}.")
         else:
             self.current_files[idx][self.offsets[identifier]] = value
@@ -218,7 +218,7 @@ class Controller(BaseController):
             tags = []
             for file_tags in [self.get_current(idx, "metadata")["tags"] for idx in files_idx]:
                 tag_set = set(file_tags) if file_tags is not None else None
-                if not tag_set in tags:
+                if tag_set not in tags:
                     tags.append(tag_set)
             common_entries["tags"] = (list(tags[0]) if tags[0] is not None else None) if len(tags) == 1 else None
 
@@ -277,7 +277,7 @@ class Controller(BaseController):
         for idx in files_idx:
             new_file_name = format_file_name(self.get_current(idx, "path"), self.get_current(idx, "metadata"))
             if new_file_name is None: continue
-            if not "rename" in self.get_current(idx, "transformations"):
+            if "rename" not in self.get_current(idx, "transformations"):
                 self.get_current(idx, "transformations")["rename"] = None
 
             self.get_current(idx, "transformations")["rename"] = new_file_name
@@ -301,7 +301,7 @@ class Controller(BaseController):
         """Handles the event that the given files are rotated by 90 degrees."""
 
         for idx in files_idx:
-            if not "rotate" in self.get_current(idx, "transformations"):
+            if "rotate" not in self.get_current(idx, "transformations"):
                 self.get_current(idx, "transformations")["rotate"] = 0
 
             self.get_current(idx, "transformations")["rotate"] = (self.get_current(idx, "transformations")["rotate"] + 90) % 360

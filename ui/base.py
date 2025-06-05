@@ -1,14 +1,13 @@
 import os, datetime
 
 from PySide6.QtCore import QCoreApplication, Qt, QDir, QTimer
-from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QAbstractItemView, QFileSystemModel, QGridLayout, QLabel, QListWidgetItem, QMessageBox, QProgressBar, QSizePolicy, QStyle, QSpacerItem, QVBoxLayout, QWidget
 
 from ui.tag_adder import TagAdder
 from ui.thumbnail_loader import ThumbnailLoader
 from ui.time_adjuster import TimeAdjuster
 
-from util import items, setup_separator_completer, datetime_to_qdatetime, qdatetime_to_datetime
+from util import items, setup_separator_completer, datetime_to_qdatetime
 from picture_metadata import get_empty_picture_data
 
 class Base_MainWindow:
@@ -43,7 +42,7 @@ class Base_MainWindow:
                     self.app.files_listWidget.itemSelectionChanged.disconnect(self.app.on_selection_changed)
                 self.count += 1
 
-            def __exit__(self, type, value, traceback):
+            def __exit__(self, type_, value, traceback):
                 if self.count == 1:
                     self.app.files_listWidget.itemSelectionChanged.connect(self.app.on_selection_changed)
                 self.count -= 1
@@ -61,7 +60,7 @@ class Base_MainWindow:
                     self.app.signals_metadata(connect=False)
                 self.count += 1
 
-            def __exit__(self, type, value, traceback):
+            def __exit__(self, type_, value, traceback):
                 if self.count == 1:
                     self.app.signals_metadata(connect=True)
                 self.count -= 1
@@ -210,7 +209,7 @@ class Base_MainWindow:
             "tags":        [self.metadata_tags.textChanged, self.metadata_tags_checkBox.checkStateChanged]
         }
 
-        for entry, signals in entries.items():
+        for _, signals in entries.items():
             for signal in signals:
                 func = lambda: self.context.metadata_entry_changed.emit()
                 signal.connect(func)

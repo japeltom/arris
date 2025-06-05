@@ -1,5 +1,7 @@
-import datetime, os, pytz, shutil, tempfile
+import datetime, os, shutil, tempfile
 from subprocess import Popen, PIPE
+
+import pytz
 
 from PySide6.QtCore import Qt, QDateTime, QTimeZone
 from PySide6.QtGui import QImage, QPixmap
@@ -193,7 +195,7 @@ def rotate_image(file_name, angle):
     angle %= 360
 
     temp_file_name = tempfile.mktemp()
-    result = Popen(["jpegtran", "-copy", "all", "-rotate", str(angle), "-outfile", temp_file_name, file_name], stdout=PIPE, stderr=PIPE).communicate()
+    Popen(["jpegtran", "-copy", "all", "-rotate", str(angle), "-outfile", temp_file_name, file_name], stdout=PIPE, stderr=PIPE).communicate()
 
     # Check if EXIF information about the orientation exists. If it does,
     # resets it.
@@ -202,7 +204,7 @@ def rotate_image(file_name, angle):
     result1.stdout.close()
     result2.communicate()
     if result2.returncode == 0:
-        result = Popen(["exiv2", "-k", "-M", "set Exif.Image.Orientation 1", temp_file_name], stdout=PIPE, stderr=PIPE).communicate()
+        Popen(["exiv2", "-k", "-M", "set Exif.Image.Orientation 1", temp_file_name], stdout=PIPE, stderr=PIPE).communicate()
 
     shutil.move(temp_file_name, file_name)
 
@@ -216,19 +218,19 @@ def optimize_image(file_name):
     # Optimize DFT coefficients for JPG.
     extensions = ["jpg", "jpeg"]
     if any(file_name.endswith("." + e) for e in extensions):
-        result = Popen(["jpegtran", "-opt", "-perfect", "-copy", "all", "-outfile", temp_file_name, file_name], stdout=PIPE, stderr=PIPE).communicate()
+        Popen(["jpegtran", "-opt", "-perfect", "-copy", "all", "-outfile", temp_file_name, file_name], stdout=PIPE, stderr=PIPE).communicate()
     else:
         shutil.copy(file_name, temp_file_name)
 
     # Remove thumbnail.
-    result = Popen(["exiv2", "-dt", "rm", temp_file_name], stdout=PIPE, stderr=PIPE).communicate()
+    Popen(["exiv2", "-dt", "rm", temp_file_name], stdout=PIPE, stderr=PIPE).communicate()
 
     shutil.move(temp_file_name, file_name)
 
 def set_image_permissions(file_name):
     """Sets image permissions to 644."""
 
-    result = Popen(["chmod", "644", file_name], stdout=PIPE, stderr=PIPE).communicate()
+    Popen(["chmod", "644", file_name], stdout=PIPE, stderr=PIPE).communicate()
 
 def set_image_timestamp(file_name, date_time):
     """Sets the image creation timestamp according to the given datetime
@@ -239,5 +241,5 @@ def set_image_timestamp(file_name, date_time):
 
     dt = date_time.astimezone(pytz.utc)
     dt = f"{dt.year:04}-{dt.month:02}-{dt.day:02} {dt.hour:02}:{dt.minute:02}:{dt.second:02}"
-    result = Popen(["touch", "-d", dt, file_name], stdout=PIPE, stderr=PIPE, env=env).communicate()
+    Popen(["touch", "-d", dt, file_name], stdout=PIPE, stderr=PIPE, env=env).communicate()
 

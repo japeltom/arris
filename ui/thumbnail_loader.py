@@ -1,7 +1,5 @@
-import rawpy
-
-from PySide6.QtCore import Qt, QThread, QTimer, Signal
-from PySide6.QtGui import QImage, QPixmap
+from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtGui import QPixmap
 
 from util import load_photo
 
