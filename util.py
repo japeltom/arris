@@ -224,9 +224,9 @@ def rotate_image(file_name, angle):
             # We cannot rotate the image on disk, but we can adjust the EXIF
             # orientation. First we need to figure out the current orientation.
             angle_map = {
-                90: 8,
+                90: 6,
                 180: 3,
-                270: 6,
+                270: 8,
             }
             orientation_map = {
                 1: 6,
