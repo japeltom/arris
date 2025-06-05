@@ -2,9 +2,6 @@ import datetime, os, shutil, tempfile
 from subprocess import Popen, PIPE
 
 import pytz
-import pillow_jxl
-from PIL import Image
-from PIL.ImageQt import ImageQt
 import rawpy
 
 from PySide6.QtCore import Qt, QDateTime, QTimeZone
@@ -83,12 +80,6 @@ def load_photo(file_name):
             image = QImage(rgb, width, height, channels*width, QImage.Format_RGB888)
             pixmap = QPixmap.fromImage(image)
             raw.close()
-        case "jxl":
-            # JPG XL.
-            image = Image.open(file_name)
-            qimage = ImageQt(image)
-            pixmap = QPixmap.fromImage(qimage)
-            pass
         case _:
             pixmap = QPixmap(file_name)
 

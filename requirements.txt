@@ -1,5 +1,3 @@
 PySide6>=6.9.0
 pytz
-pillow
-pillow-jxl-plugin
 rawpy
