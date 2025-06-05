@@ -335,7 +335,7 @@ class Controller(BaseController):
                 continue
 
             # Write the XMP tags.
-            write_xmp_to_file(file_name, metadata, language=self.config.general.default_language)
+            write_xmp_to_file(file_name, metadata, language=self.config.general.default_language, ignore_errors=True)
 
             # Check if XMP date time and existing EXIF tag date times mismatch,
             # and update EXIF tags if necessary.
@@ -365,6 +365,7 @@ class Controller(BaseController):
             if "rotate" in transformations:
                 angle = transformations["rotate"]
                 rotate_image(file_name, angle)
+                self.get_current(idx, "transformations")["rotate"] = 0
             # Rename.
             if "rename" in transformations:
                 new_file_name = os.path.join(os.path.dirname(file_name), transformations["rename"])

@@ -37,7 +37,7 @@ class Arris(QMainWindow,Ui_MainWindow,Base_MainWindow):
 
         # Check if needed command line utilities exist and inform the user if
         # they do not.
-        for cli_tool in ["exiv2", "jpegtran"]:
+        for cli_tool in ["exiv2", "magick", "jpegtran"]:
             exists = shutil.which(cli_tool) is not None
             if not exists:
                 msg_box = QMessageBox(self)

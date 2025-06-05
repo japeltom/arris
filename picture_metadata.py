@@ -67,7 +67,7 @@ def load_xmp_from_file(file_name, default_time_zone=None, ignore_errors=False):
 
     return data
 
-def write_xmp_to_file(file_name, metadata, language):
+def write_xmp_to_file(file_name, metadata, language, ignore_errors=False):
     """Writes the metadata entries as XMP tags tothe given file."""
 
     entries = {
@@ -163,7 +163,7 @@ def write_xmp_to_file(file_name, metadata, language):
 
     # Perform the call.
     result = Popen(call, stdout=PIPE, stderr=PIPE).communicate()
-    if len(result[1]) > 0:
+    if len(result[1]) > 0 and not ignore_errors:
         raise XMPWriteError(file_name, result[1].decode("utf-8"))
 
 def load_exif_from_file(file_name, tags, ignore_errors=False):

@@ -8,6 +8,8 @@ from PySide6.QtCore import Qt, QDateTime, QTimeZone
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import QCompleter
 
+from picture_metadata import load_exif_from_file
+
 supported_extensions = ["cr2", "jpg", "jpeg", "png", "rw2"]
 
 def items(list_widget):
@@ -198,19 +200,63 @@ def rotate_image(file_name, angle):
 
     angle %= 360
 
-    temp_file_name = tempfile.mktemp()
-    Popen(["jpegtran", "-copy", "all", "-rotate", str(angle), "-outfile", temp_file_name, file_name], stdout=PIPE, stderr=PIPE).communicate()
+    extension = lambda x: x.split(".")[-1].lower() if "." in x else None
+    match extension(file_name):
+        case "jpg" | "png":
+            # We actually rotate the image on disk and reset the EXIF orientation.
+            temp_file_name = tempfile.mktemp()
 
-    # Check if EXIF information about the orientation exists. If it does,
-    # resets it.
-    result1 = Popen(["exiv2", "-pt", "pr", temp_file_name], stdout=PIPE, stderr=PIPE)
-    result2 = Popen(["grep", "Exif.Image.Orientation"], stdin=result1.stdout, stdout=PIPE, stderr=PIPE)
-    result1.stdout.close()
-    result2.communicate()
-    if result2.returncode == 0:
-        Popen(["exiv2", "-k", "-M", "set Exif.Image.Orientation 1", temp_file_name], stdout=PIPE, stderr=PIPE).communicate()
+            # Perform the actual rotation.
+            if extension(file_name) == "jpg":
+                # We use jpegtran for rotation.
+                Popen(["jpegtran", "-copy", "all", "-rotate", str(angle), "-outfile", temp_file_name, file_name], stdout=PIPE, stderr=PIPE).communicate()
+            else:
+                # We use ImageMagick for rotation.
+                Popen(["magick", file_name, "-rotate", str(angle), temp_file_name], stdout=PIPE, stderr=PIPE).communicate()
 
-    shutil.move(temp_file_name, file_name)
+            # Reset the EXIF orientation tag (if it exists).
+            exif = load_exif_from_file(temp_file_name, ["Exif.Image.Orientation"], ignore_errors=True)
+            if len(exif) > 0:
+                Popen(["exiv2", "-k", "-M", "set Exif.Image.Orientation 1", temp_file_name], stdout=PIPE, stderr=PIPE).communicate()
+
+            shutil.move(temp_file_name, file_name)
+        case "cr2" | "rw2":
+            # We cannot rotate the image on disk, but we can adjust the EXIF
+            # orientation. First we need to figure out the current orientation.
+            angle_map = {
+                90: 8,
+                180: 3,
+                270: 6,
+            }
+            orientation_map = {
+                1: 6,
+                6: 3,
+                3: 8,
+                8: 1,
+                2: 5,
+                5: 4,
+                4: 7,
+                7: 2,
+            }
+
+            exif = load_exif_from_file(file_name, ["Exif.Image.Orientation"], ignore_errors=True)
+            if len(exif) > 0:
+                # The orientation tag exists.
+                current_orientation = int(exif["Exif.Image.Orientation"])
+                new_orientation = current_orientation
+                angle_remaining = angle
+                while angle_remaining > 0:
+                    print("current", new_orientation)
+                    new_orientation = orientation_map[new_orientation]
+                    angle_remaining -= 90
+            else:
+                # No orientation tag exists.
+                new_orientation = angle_map[angle]
+            
+            print(f"raw rotation to {angle} -> {new_orientation}")
+            Popen(["exiv2", "-k", "-M", f"set Exif.Image.Orientation {new_orientation}", file_name], stdout=PIPE, stderr=PIPE).communicate()
+        case _:
+            raise ValueError(f"Unknown file type '{extension(file_name)}' for rotation.")
 
 def optimize_image(file_name):
     """Optimize an image file for size. Remove embedded EXIF thumbnail data."""

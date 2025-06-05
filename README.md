@@ -33,16 +33,16 @@ Running Arris is as simple as cloning the repository and running
 earlier versions of Python just fine. For windowing, Arris uses Qt version 6,
 so your operating system should have the necessary libraries installed. The
 necessary Python package dependencies are listed in `requirements.txt`. In
-addition, Arris needs the command line utilities `exiv2` and `jpegtran`. On
-most distros, the former is included in the package `exiv2` and the latter in
-`libjpeg-turbo` or similar.
+addition, Arris needs the command line utilities `exiv2`, `magick`, and
+`jpegtran`. On most distros, the first is included in the package `exiv2`, the
+second in `ImageMagick`, and the last in `libjpeg-turbo` or similar.
 
 # Brief usage instructions
 
 The metadata editor is on the `Editor` tab of the Arris main window (the
 `Browser` tab is empty and is to be implemented in the future). Use the left
 panel to navigate to a directory with photos you want to organize. The loaded
-photos are then displayed in the next panel (only JPG,CR2,RW2 files are
+photos are then displayed in the next panel (only JPG,PNG,CR2,RW2 files are
 supported at the moment). When a photo is selected, the third panel will
 display its XMP metadata (if it exists), and the photo is displayed in the
 final panel. The date time is loaded from an EXIF tag (typically saved by
