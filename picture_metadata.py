@@ -198,7 +198,7 @@ def load_exif_from_file(file_name, tags, ignore_errors=False):
 
     return out
 
-def write_exif_to_file(file_name, tags):
+def write_exif_to_file(file_name, tags, ignore_errors=False):
     """Sets the EXIF tags of the specified file according to the given
     dictionary (tag-value pairs)."""
 
@@ -218,7 +218,7 @@ def write_exif_to_file(file_name, tags):
 
     # Perform the call.
     result = Popen(call, stdout=PIPE, stderr=PIPE).communicate()
-    if len(result[1]) > 0:
+    if len(result[1]) > 0 and not ignore_errors:
         raise EXIFWriteError(file_name, result[1].decode("utf-8"))
 
 def exif_timestamp_to_datetime(timestamp, time_zone=None):

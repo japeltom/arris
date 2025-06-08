@@ -164,7 +164,7 @@ class Controller(BaseController):
                     # If there is no XMP date time in the file, attempt to load
                     # this information from EXIF tags.
                     if metadata["date_time"] is None:
-                        r = load_exif_from_file(file_name, ["Exif.Image.DateTime"])
+                        r = load_exif_from_file(file_name, ["Exif.Image.DateTime"], ignore_errors=True)
                         if "Exif.Image.DateTime" in r:
                             metadata["date_time"] = exif_timestamp_to_datetime(r["Exif.Image.DateTime"], time_zone=self.config.general.default_time_zone)
 
@@ -348,17 +348,17 @@ class Controller(BaseController):
                 "Exif.Photo.DateTimeDigitized",
                 "Exif.SonySInfo1.SonyDateTime"
             ]
-            r = load_exif_from_file(file_name, exif_tags)
+            r = load_exif_from_file(file_name, exif_tags, ignore_errors=True)
             s_xmp = metadata["date_time"].strftime("%Y:%m:%d %H:%M:%S") if metadata["date_time"] is not None else None
             updated = {}
             for tag in exif_tags:
-                if tag in r:
+                if tag in r and len(r[tag]) > 0:
                     dt_exif = exif_timestamp_to_datetime(r[tag])
                     s_exif = dt_exif.strftime("%Y:%m:%d %H:%M:%S")
                     if s_exif != s_xmp:
                         updated[tag] = s_xmp
             if len(updated) > 0:
-                write_exif_to_file(file_name, updated)
+                write_exif_to_file(file_name, updated, ignore_errors=True)
 
             # Perform transformations.
             # Rotation.
