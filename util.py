@@ -24,17 +24,20 @@ class DotDict(dict):
 
     def __init__(self, dct):
         for key, value in dct.items():
-            if isinstance(value, dict):
-                value = DotDict(value)
+            #if isinstance(value, dict):
+            #    value = DotDict(value)
             self[key] = value
 
     def __getattr__(self, key):
         return self[key]
     
     def __setattr__(self, key, value):
+        self[key] = value
+
+    def __setitem__(self, key, value):
         if isinstance(value, dict):
             value = DotDict(value)
-        self[key] = value
+        super().__setitem__(key, value)
     
 def list_files(path, extensions=None, recursive=False, hidden=False, followlinks=True):
     """Get the files from the path that have the specified extension.
