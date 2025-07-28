@@ -312,6 +312,7 @@ class Controller(BaseController):
         # Save the changes in selected edited files.
         self.save_selected_metadata()
 
+        deleted_idx = []
         for n, idx in enumerate(range(len(self.current_files))):
             file_name = self.get_current(idx, "path")
             metadata = self.get_current(idx, "metadata")
@@ -321,12 +322,14 @@ class Controller(BaseController):
             # Notice that this must be done before we consider if a file has
             # been edited.
             if self.get_current(idx, "delete"):
-                # Only delete if the file exists (the file might have already
-                # been removed by a previous save event).
+                # Only delete if the file exists.
                 if os.path.exists(file_name):
                     os.unlink(file_name)
                 self.context.file_deleted.emit(idx)
                 self.context.indicate_progress.emit(n + 1)
+                # Save the index so that we can refresh the list of current
+                # files later.
+                deleted_idx.append(idx)
                 continue
 
             # Skip files that have not been edited.
@@ -397,6 +400,13 @@ class Controller(BaseController):
 
             # Signal how many files have been handled.
             self.context.indicate_progress.emit(n + 1)
+
+        # Refresh the list of current files.
+        new_current_files = []
+        for i in range(len(self.current_files)):
+            if i not in deleted_idx:
+                new_current_files.append(self.current_files[i])
+        self.current_files = new_current_files
 
         self.context.saved_edits.emit()
 

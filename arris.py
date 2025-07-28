@@ -61,7 +61,10 @@ class Arris(QMainWindow,Ui_MainWindow,Base_MainWindow):
         # Disable the save button.
         self.actionSave.setEnabled(False)
 
-        for item in items(self.files_listWidget):
+        for n, item in enumerate(items(self.files_listWidget)):
+            # Refresh the item's index.
+            item.setData(self.OFFSET_IDX, n)
+
             # Disable bolding on edited files.
             font = item.font()
             font.setBold(False)
